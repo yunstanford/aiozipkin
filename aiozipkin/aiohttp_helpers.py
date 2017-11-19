@@ -1,11 +1,28 @@
+import aiohttp
+import asyncio
 from aiohttp.web import HTTPException
 
-from .constants import HTTP_PATH, HTTP_STATUS_CODE, HTTP_METHOD
+from .constants import HTTP_PATH, HTTP_STATUS_CODE, HTTP_METHOD, HTTP_REDIRECT
 from .helpers import make_context, SERVER, parse_debug, parse_sampled
 
 
 APP_AIOZIPKIN_KEY = 'aiozipkin_tracer'
 REQUEST_AIOZIPKIN_KEY = 'aiozipkin_span'
+
+
+def set_task_ctx(key, value):
+    t = asyncio.Task.current_task()
+    if hasattr(t, '_context'):
+        t._context[key] = value
+    else:
+        t._context = {key: value}
+
+
+def get_task_ctx(key):
+    t = asyncio.Task.current_task()
+    if hasattr(t, '_context'):
+        return t._context.get(key)
+    return None
 
 
 def middleware_maker(tracer_key=APP_AIOZIPKIN_KEY,
@@ -69,3 +86,49 @@ def get_tracer(app, tracer_key=APP_AIOZIPKIN_KEY):
 
 def request_span(request, request_key=REQUEST_AIOZIPKIN_KEY):
     return request[request_key]
+
+
+
+def make_trace_config(tracer):
+
+    trace_config = aiohttp.TraceConfig()
+
+    async def on_request_start(session, trace_config_ctx, method, url,
+                               headers, request_trace_config_ctx=None):
+        import ipdb
+        ipdb.set_trace()
+
+        span_ctx = get_task_ctx('current_span_ctx')
+        span = tracer.new_span(span_ctx)
+        span.kind(SERVER)
+        span.tag(HTTP_METHOD, method.upper())
+
+        span_name = '{0} {1}'.format(method, '')
+        span.name(span_name)
+        span.start()
+        trace_config_ctx._span = span
+
+    async def on_request_end(session, trace_config_ctx, resp,
+                             request_trace_config_ctx=None):
+        import ipdb
+        ipdb.set_trace()
+        span = trace_config_ctx._span
+        span.finish()
+
+    async def on_request_redirect(session, trace_config_ctx, *a, **kw):
+        import ipdb
+        ipdb.set_trace()
+        span = trace_config_ctx._span
+        span.annotate(HTTP_REDIRECT)
+
+    async def on_request_exception(session, trace_config_ctx, resp, error,
+                                   request_trace_config_ctx=None):
+        import ipdb
+        ipdb.set_trace()
+        span = trace_config_ctx._span
+        span.finish(exception=error)
+
+    trace_config.on_request_start.append(on_request_start)
+    trace_config.on_request_end.append(on_request_end)
+    trace_config.on_request_end.append(on_request_exception)
+    return trace_config
