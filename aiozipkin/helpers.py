@@ -1,3 +1,5 @@
+import attr
+from attr.validators import instance_of, optional
 import time
 from typing import NamedTuple, Optional, Dict, List, Any
 
@@ -54,13 +56,26 @@ Endpoint = NamedTuple(
 )
 
 
+@attr.s
+class Endpoint:
+    serviceName = attr.ib()
+    ipv4 = attr.ib(validator=optional(instance_of(str)))
+    ipv6 = attr.ib(validator=optional(instance_of(str)))
+    port = attr.ib(validator=optional(instance_of(int)))
+
+
 def create_endpoint(servce_name: str, *,
                     ipv4: OptStr=None,
                     ipv6: OptStr=None,
                     port: OptInt=None):
     """Factory function to create Endpoint object.
     """
-    return Endpoint(servce_name, ipv4, ipv6, port)
+    return Endpoint(
+                serviceName=servce_name,
+                ipv4=ipv4,
+                ipv6=ipv6,
+                port=port,
+            )
 
 
 def make_timestamp(ts: OptTs=None) -> int:
