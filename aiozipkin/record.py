@@ -1,4 +1,5 @@
-from typing import TypeVar, Dict, Any, List, NamedTuple
+import attr
+from typing import TypeVar, Dict, Any, List
 from .mypy_types import OptInt, OptStr, Optional  # flake8: noqa
 
 from .helpers import (
@@ -10,7 +11,10 @@ from .helpers import (
 )
 
 
-Annotation = NamedTuple('Annotation', [('value', str), ('timestamp', int)])
+@attr.s
+class Annotation:
+    value = attr.ib()
+    timestamp = attr.ib()
 
 
 def _endpoint_asdict(endpoint: Endpoint) -> Dict[str, Any]:
@@ -57,7 +61,7 @@ class Record:
         return self
 
     def annotate(self: T, value: str, ts: int) -> T:
-        self._annotations.append(Annotation(str(value), int(ts)))
+        self._annotations.append(Annotation(value=str(value), timestamp=int(ts)))
         return self
 
     def kind(self: T, kind: str) -> T:
@@ -82,7 +86,7 @@ class Record:
             'shared': c.shared,
             'localEndpoint': self._local_endpoint,
             'remoteEndpoint': self._remote_endpoint,
-            'annotations': [a._asdict() for a in self._annotations],
+            'annotations': [attr.asdict(a) for a in self._annotations],
             'tags': self._tags,
         }
         return filter_none(rec, ['kind'])
