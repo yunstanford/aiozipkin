@@ -1,7 +1,7 @@
 import attr
 from attr.validators import instance_of, optional
 import time
-from typing import NamedTuple, Optional, Dict, List, Any
+from typing import Optional, Dict, List, Any
 
 from .mypy_types import Headers, OptBool, OptInt, OptStr, OptTs
 
@@ -22,22 +22,18 @@ FLAGS_HEADER = 'X-B3-Flags'
 SAMPLED_ID_HEADER = 'X-B3-Sampled'
 
 
-_TraceContext = NamedTuple(
-    'TraceContext', [
-        ('trace_id', str),
-        ('parent_id', OptStr),
-        ('span_id', str),
-        ('sampled', bool),
-        ('debug', bool),
-        ('shared', bool),
-        ]
-)
-
-
-class TraceContext(_TraceContext):
+@attr.s
+class TraceContext:
     """Immutable class with trace related data that travels across
     process boundaries.
     """
+    trace_id = attr.ib()
+    span_id = attr.ib()
+    sampled = attr.ib()
+    debug = attr.ib()
+    shared = attr.ib()
+    parent_id = attr.ib(validator=optional(instance_of(str)))
+
 
     def make_headers(self) -> Headers:
         """Creates dict with zipkin headers from available context.
@@ -46,14 +42,6 @@ class TraceContext(_TraceContext):
         to other services.
         """
         return make_headers(self)
-
-
-Endpoint = NamedTuple(
-    'Endpoint', [('serviceName', str),
-                 ('ipv4', OptStr),
-                 ('ipv6', OptStr),
-                 ('port', OptInt)]
-)
 
 
 @attr.s
