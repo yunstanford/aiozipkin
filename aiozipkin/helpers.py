@@ -44,12 +44,21 @@ class TraceContext:
         return make_headers(self)
 
 
+
+def _filter_None(attribute, value):
+    return value is not None
+
+
 @attr.s
 class Endpoint:
     serviceName = attr.ib()
-    ipv4 = attr.ib(validator=optional(instance_of(str)))
-    ipv6 = attr.ib(validator=optional(instance_of(str)))
-    port = attr.ib(validator=optional(instance_of(int)))
+    ipv4 = attr.ib(validator=optional(instance_of(str)), default=None)
+    ipv6 = attr.ib(validator=optional(instance_of(str)), default=None)
+    port = attr.ib(validator=optional(instance_of(int)), default=None)
+
+    def to_dict(self):
+        return attr.asdict(self, filter=_filter_None)
+
 
 
 def create_endpoint(servce_name: str, *,
@@ -126,21 +135,3 @@ def make_context(headers: Headers) -> Optional[TraceContext]:
 
 
 OptKeys = Optional[List[str]]
-
-
-def filter_none(data: Dict[str, Any],
-                keys: OptKeys=None) -> Dict[str, Any]:
-    """Filter keys from dict with None values.
-
-    Check occurs only on root level. If list of keys specified, filter
-    works only for selected keys
-    """
-
-    def limited_filter(k: str, v: Any) -> bool:
-        return k not in keys or v is not None  # type: ignore
-
-    def full_filter(k: str, v: Any) -> bool:
-        return v is not None
-
-    f = limited_filter if keys is not None else full_filter
-    return {k: v for k, v in data.items() if f(k, v)}

@@ -7,7 +7,6 @@ from .helpers import (
     PRODUCER,
     Endpoint,
     TraceContext,
-    filter_none,
 )
 
 
@@ -15,10 +14,6 @@ from .helpers import (
 class Annotation:
     value = attr.ib()
     timestamp = attr.ib()
-
-
-def _endpoint_asdict(endpoint: Endpoint) -> Dict[str, Any]:
-    return filter_none(endpoint._asdict())
 
 
 T = TypeVar('T', bound='Record')
@@ -29,7 +24,7 @@ class Record:
     def __init__(self: T, context: TraceContext,
                  local_endpoint: Endpoint) -> None:
         self._context = context
-        self._local_endpoint = _endpoint_asdict(local_endpoint)
+        self._local_endpoint = local_endpoint.to_dict()
         self._finished = False
 
         self._name = 'unknown'
@@ -69,7 +64,7 @@ class Record:
         return self
 
     def remote_endpoint(self: T, endpoint: Endpoint) -> T:
-        self._remote_endpoint = _endpoint_asdict(endpoint)
+        self._remote_endpoint = endpoint.to_dict()
         return self
 
     def asdict(self) -> Dict[str, Any]:
