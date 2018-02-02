@@ -27,12 +27,12 @@ class TraceContext:
     """Immutable class with trace related data that travels across
     process boundaries.
     """
-    trace_id = attr.ib()
-    span_id = attr.ib()
-    sampled = attr.ib()
-    debug = attr.ib()
-    shared = attr.ib()
-    parent_id = attr.ib(validator=optional(instance_of(str)))
+    trace_id = attr.ib(type=str)
+    span_id = attr.ib(type=str)
+    sampled = attr.ib(type=bool)
+    debug = attr.ib(type=bool)
+    shared = attr.ib(type=bool)
+    parent_id = attr.ib(type=str, default=None)
 
 
     def make_headers(self) -> Headers:
@@ -52,9 +52,9 @@ def _filter_None(attribute, value):
 @attr.s
 class Endpoint:
     serviceName = attr.ib()
-    ipv4 = attr.ib(validator=optional(instance_of(str)), default=None)
-    ipv6 = attr.ib(validator=optional(instance_of(str)), default=None)
-    port = attr.ib(validator=optional(instance_of(int)), default=None)
+    ipv4 = attr.ib(type=str, default=None)
+    ipv6 = attr.ib(type=str, default=None)
+    port = attr.ib(type=int, default=None)
 
     def to_dict(self):
         return attr.asdict(self, filter=_filter_None)

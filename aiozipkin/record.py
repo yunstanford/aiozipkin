@@ -12,8 +12,8 @@ from .helpers import (
 
 @attr.s
 class Annotation:
-    value = attr.ib()
-    timestamp = attr.ib()
+    value = attr.ib(type=str)
+    timestamp = attr.ib(type=int)
 
 
 T = TypeVar('T', bound='Record')
