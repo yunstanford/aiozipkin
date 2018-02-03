@@ -22,7 +22,7 @@ FLAGS_HEADER = 'X-B3-Flags'
 SAMPLED_ID_HEADER = 'X-B3-Sampled'
 
 
-@attr.s
+@attr.s(frozen=True, cmp=True)
 class TraceContext:
     """Immutable class with trace related data that travels across
     process boundaries.
@@ -34,7 +34,6 @@ class TraceContext:
     shared = attr.ib(type=bool)
     parent_id = attr.ib(type=str, default=None)
 
-
     def make_headers(self) -> Headers:
         """Creates dict with zipkin headers from available context.
 
@@ -43,6 +42,10 @@ class TraceContext:
         """
         return make_headers(self)
 
+    def _replace(self, **kargs):
+        dump_dict = attr.asdict(self)
+        dump_dict.update(kargs)
+        return TraceContext(**dump_dict)
 
 
 def _filter_None(attribute, value):

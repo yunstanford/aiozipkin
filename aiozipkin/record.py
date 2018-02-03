@@ -69,6 +69,7 @@ class Record:
 
     def asdict(self) -> Dict[str, Any]:
         c = self._context
+
         rec = {
             'traceId': c.trace_id,
             'name': self._name,
@@ -84,4 +85,7 @@ class Record:
             'annotations': [attr.asdict(a) for a in self._annotations],
             'tags': self._tags,
         }
-        return filter_none(rec, ['kind'])
+
+        if rec['kind'] is None:
+            rec.pop('kind')
+        return rec

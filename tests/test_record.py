@@ -3,8 +3,18 @@ from aiozipkin.helpers import TraceContext, Endpoint
 
 
 def test_basic_ctr():
-    context = TraceContext('string', 'string', 'string', True, True, True)
-    local_endpoint = Endpoint('string', 'string', 'string', 0)
+    context = TraceContext(
+                trace_id='string',
+                span_id='string',
+                parent_id='string',
+                sampled=True,
+                debug=True,
+                shared=True)
+    local_endpoint = Endpoint(
+                serviceName='string',
+                ipv4='string',
+                ipv6='string',
+                port=0)
     remote_endpoint = Endpoint('string', 'string', 'string', 0)
     record = (Record(context, local_endpoint)
               .start(0)
